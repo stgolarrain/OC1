@@ -12,7 +12,13 @@ namespace OC1
     {
 
         private int _dimension;
-        public double[][] _data { get; set; }
+        private double[][] _data { get; set; }
+
+        public double[][] Data
+        {
+            get { return _data; }
+        }
+
         public int Dimension
         {
             get

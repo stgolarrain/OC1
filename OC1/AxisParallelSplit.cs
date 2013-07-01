@@ -59,8 +59,11 @@ namespace OC1
         public double Entropy(double[][] input)
         {
             double entropy = 0;
-            foreach(double p in getClasesProbabilities(input))
-                entropy += -p * Math.Log(p, 2);
+            foreach (double p in getClasesProbabilities(input))
+            {
+                if(p > 0)
+                    entropy += -p * Math.Log(p, 2);
+            }
             return entropy;
         }
 
@@ -78,21 +81,22 @@ namespace OC1
         public double[] getClasesProbabilities(double[][] input)
         {
             int total = input.Length;
+            int dimension = input[0].Length;
             double[] probabilities = new double[getClases().Length];
             for (int i = 0; i < input.Length; i++)
             {
-                probabilities[(int)input[i][_dimension - 1] - 1]++;
+                probabilities[(int)input[i][dimension - 1] - 1]++;
             }
             return probabilities.Select(p => p/total).ToArray();
         }
 
-        public double Gain(int atributte, double[][] input)
+        public double Gain(int atributte, double[][] input, int k)
         {
             double gain = Entropy(input);
             int total = input.Length;
 
-            double min = 0;
-            double max = 0;
+            double min = Double.MaxValue;
+            double max = Double.MinValue;
             foreach (double[] line in input)
             {
                 if (line[atributte] > max)
@@ -100,21 +104,24 @@ namespace OC1
                 if (line[atributte] < min)
                     min = line[atributte];
             }
-            double delta = (max - min) / _k;
+            double delta = (max - min) / (k - 1);
 
-            List<double[]>[] divisionGroupsLine = new List<double[]>[_k];
+            List<double[]>[] divisionGroupsLine = new List<double[]>[k];
+            for (int i = 0; i < k; i++)
+                divisionGroupsLine[i] = new List<double[]>();
+
             for (int i = 0; i < input.Length; i++)
             {
-                for (int j = 0; j < _k; j++)
+                for (int j = 0; j < k; j++)
                 {
-                    if(input[i][atributte] < (min + (j+1)*delta))
-                        divisionGroupsLine[j].Add(_data[i]);
+                    if(input[i][atributte] >= (min + j*delta) && input[i][atributte] < (min + (j+1)*delta))
+                        divisionGroupsLine[j].Add(input[i]);
                 }
             }
 
             for (int i = 0; i < divisionGroupsLine.Length; i++)
             {
-                gain -= (divisionGroupsLine[i].Count() / total) * Entropy(divisionGroupsLine[i].ToArray());
+                gain = gain - ((double)divisionGroupsLine[i].Count() / total) * Entropy(divisionGroupsLine[i].ToArray());
             }
 
             return gain;
