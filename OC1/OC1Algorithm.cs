@@ -33,10 +33,6 @@ namespace OC1
             _desicionTree = new DesicionTree(root);
         }
 
-        public void SolveAlgorithm()
-        {
-
-
-        }
+        
     }
 }
