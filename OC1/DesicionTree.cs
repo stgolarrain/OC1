@@ -14,5 +14,10 @@ namespace OC1
         {
             _root = root;
         }
+
+        public Node getRoot()
+        {
+            return _root;
+        }
     }
 }

@@ -6,22 +6,44 @@ using System.Threading.Tasks;
 
 namespace OC1
 {
-    class Node
+    class Node : ICloneable
     {
 
         private double[] _weights;
-        private double _baias;
-        private int _dimension;
-        private Node _left, _right, _parent;
+        private double _baias, _Pmove;
+        private int _dimension, _class;
+        private Node _parent;
+        private Node[] _child;
         private double[][] _data;
-        private static int splitConstant;
+        List<double[]>[] _divisionGroupsLine;
+        bool[] _activeAtributtes;
 
-        public Node(int dimension, double[] weights, double[][] data)
+        private static int splitConstant;
+        private static double Pstag;
+
+        public Node(double[] weights, double[][] data, bool[] activeAtributes)
         {
-            _dimension = dimension;
+            _dimension = data[0].Length;
             _weights = weights;
             _baias = 0;
             _data = data;
+            _child = new Node[splitConstant];
+            _activeAtributtes = activeAtributes;
+            _divisionGroupsLine = new List<double[]>[splitConstant];
+            for (int i = 0; i < splitConstant; i++)
+                _divisionGroupsLine[i] = new List<double[]>();
+            _class = -1;
+        }
+
+        public object Clone()
+        {
+            return this.MemberwiseClone();
+        }
+
+        public int Class
+        {
+            get { return _class; }
+            set { _class = value; }
         }
 
         public static void setSplitConstant(int k)
@@ -29,13 +51,74 @@ namespace OC1
             splitConstant = k;
         }
 
-        public void Pertube(double[][] input)
+        public static void SetPmode(double p)
         {
-            double[] U = new double[input.Length];
+            Pstag = p;
+        }
+
+        public bool[] ActiveAtributtes
+        {
+            get { return _activeAtributtes; }
+        }
+
+        public int AtributtesUse()
+        {
+            int result = 0;
+            for (int i = 0; i < _activeAtributtes.Length; i++)
+                if(_activeAtributtes[i])
+                    result++;
+            return result;
+        }
+
+        public List<double[]>[] DivisionGroups
+        {
+            get { return _divisionGroupsLine; }
+        }
+
+        public double[] Weight
+        {
+            get { return _weights;}
+            set { _weights = value; }
+        }
+
+        public void Pertube(int m)
+        {
+            if (!_activeAtributtes[m])
+                return;
+
+            double[] U = new double[_data.Length];
+            int localMaxInput = 0;
+            double localMax = 0;
             for (int j = 0; j < U.Length; j++)
             {
-                U[j] = score(input[j]);
+                U[j] = (_data[j][m] - score(_data[j]))/_data[j][m];
+                if (score(_data[j]) > localMax)
+                {
+                    localMaxInput = j;
+                    localMax = (_data[j][m] - score(_data[j])) / _data[j][m];
+                }
             }
+
+            Node auxNode = new Node(_weights, _data, _activeAtributtes);
+            auxNode.ChangeWeigth(localMaxInput, localMax);
+            if (auxNode.Gain() > this.Gain())
+            {
+                _weights = auxNode.Weight;
+                _Pmove = Pstag;
+            }
+            else if (auxNode.Gain() == this.Gain())
+            {
+                Random rand = new Random();
+                if (rand.NextDouble() < _Pmove)
+                    _weights = auxNode.Weight;
+                _Pmove -= 0.1 * Pstag;
+            }
+            
+        }
+
+        public void ChangeWeigth(int atributte, double amount)
+        {
+            _weights[atributte] = amount;
         }
 
         public double score(double[] input)
@@ -47,15 +130,9 @@ namespace OC1
             return score + _baias;
         }
 
-        public void AddRightChild(Node n)
+        public void AddChild(Node n, int i)
         {
-            _right = n;
-            n.SetParent(this);
-        }
-
-        public void AddLeftChild(Node n)
-        {
-            _left = n;
+            _child[i] = n;
             n.SetParent(this);
         }
 
@@ -110,60 +187,41 @@ namespace OC1
             return probabilities.Select(p => p / total).ToArray();
         }
 
-        public double Gain(int atributte)
+        public void setDivisionGroups()
         {
-            double gain = Entropy(_data);
-            int total = _data.Length;
-
             double min = Double.MaxValue;
             double max = Double.MinValue;
             foreach (double[] line in _data)
             {
                 if (score(line) > max)
-                    max = line[atributte];
+                    max = score(line);
                 if (score(line) < min)
-                    min = line[atributte];
+                    min = score(line);
             }
             double delta = (max - min) / splitConstant;
-
-            List<double[]>[] divisionGroupsLine = new List<double[]>[splitConstant];
-            for (int i = 0; i < splitConstant; i++)
-                divisionGroupsLine[i] = new List<double[]>();
 
             for (int i = 0; i < _data.Length; i++)
             {
                 for (int j = 0; j < splitConstant; j++)
                 {
                     if (score(_data[i]) >= (min + j * delta) && score(_data[i]) < (min + (j + 1) * delta))
-                        divisionGroupsLine[j].Add(_data[i]);
+                        _divisionGroupsLine[j].Add(_data[i]);
                 }
             }
+        }
 
-            for (int i = 0; i < divisionGroupsLine.Length; i++)
+        public double Gain()
+        {
+            double gain = Entropy(_data);
+            int total = _data.Length;
+            setDivisionGroups();
+
+            for (int i = 0; i < _divisionGroupsLine.Length; i++)
             {
-                gain = gain - ((double)divisionGroupsLine[i].Count() / total) * Entropy(divisionGroupsLine[i].ToArray());
+                gain = gain - ((double)_divisionGroupsLine[i].Count() / total) * Entropy(_divisionGroupsLine[i].ToArray());
             }
 
             return gain;
         }
-
-        /*public int GetHigherGain()
-        {
-            int atributte = 0;
-            double gain = -1;
-            for (int i = 0; i < _data[0].Length - 1; i++)
-            {
-                if (_activeAtributtes[i])
-                {
-                    double localGain = Gain(i);
-                    if (localGain > gain)
-                    {
-                        gain = Gain(i);
-                        atributte = i;
-                    }
-                }
-            }
-            return atributte;
-        }*/
     }
 }

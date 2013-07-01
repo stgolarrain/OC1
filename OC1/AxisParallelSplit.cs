@@ -14,12 +14,22 @@ namespace OC1
         private int _k;
         private bool[] _activeAtributtes;
 
-        public AxisParallelSplit(double[][] data, int dimension, int k, bool[] activeAtributtes)
+        public AxisParallelSplit(double[][] data, int k, bool[] activeAtributtes)
         {
             _data = data;
-            _dimension = dimension;
+            _dimension = data[0].Length;
             _k = k;
             _activeAtributtes = activeAtributtes;
+        }
+
+        public int GetClass()
+        {
+            if (SameClass() != -1)
+                return SameClass();
+            if (SameAtributtes() != -1)
+                return SameAtributtes();
+            return -1;
+            
         }
 
         public int SameClass()
@@ -120,7 +130,7 @@ namespace OC1
                 if (line[atributte] < min)
                     min = line[atributte];
             }
-            double delta = (max - min) / (_k - 1);
+            double delta = (max - min) / (_k);
 
             List<double[]>[] divisionGroupsLine = new List<double[]>[_k];
             for (int i = 0; i < _k; i++)
@@ -149,7 +159,7 @@ namespace OC1
             double gain = -1;
             for (int i = 0; i < _data[0].Length - 1; i++)
             {
-                if(_activeAtributtes[i])
+                if(!_activeAtributtes[i])
                 {
                     double localGain = Gain(i);
                     if (localGain > gain)
