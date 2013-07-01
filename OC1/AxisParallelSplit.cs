@@ -12,12 +12,14 @@ namespace OC1
         private double[][] _data;
         private int _dimension;
         private int _k;
+        private bool[] _activeAtributtes;
 
-        public AxisParallelSplit(double[][] data, int dimension, int k)
+        public AxisParallelSplit(double[][] data, int dimension, int k, bool[] activeAtributtes)
         {
             _data = data;
             _dimension = dimension;
             _k = k;
+            _activeAtributtes = activeAtributtes;
         }
 
         public int SameClass()
@@ -31,17 +33,21 @@ namespace OC1
             return classValue;
         }
 
-        public int SameAtributtes(int[] atributtes)
+        /*
+         * Returns -1 if the input doesn't have the same value for all the atributtes.
+         * Returns the atributte number in other case.
+         */
+        public int SameAtributtes()
         {
             double[] values = _data[0];
             int[] classCount = new int[_dimension];
 
             foreach (double[] line in _data)
             {
-                foreach (int d in atributtes)
+                for(int a = 0; a < _dimension; a++)
                 {
                     classCount[(int)line[_dimension - 1]]++;
-                    if (values[d] != line[d])
+                    if (values[a] != line[a])
                         return -1;
                 }
             }
@@ -56,7 +62,10 @@ namespace OC1
             return maxClass;
         }
 
-        public double Entropy(double[][] input)
+        /*
+         * Calculates the Entropy of a data set.
+         */ 
+        public static double Entropy(double[][] input)
         {
             double entropy = 0;
             foreach (double p in getClasesProbabilities(input))
@@ -67,22 +76,29 @@ namespace OC1
             return entropy;
         }
 
-        public int[] getClases()
+        /*
+         * Calculates the clases of a given data set.
+         */ 
+        public static int[] getClases(double[][] input)
         {
+            int dimension = input[0].Length;
             List<int> clases = new List<int>();
-            foreach(double[] line in _data)
+            foreach (double[] line in input)
             {
-                if(!clases.Contains((int)line[_dimension - 1]))
-                    clases.Add((int)line[_dimension - 1]);
+                if(!clases.Contains((int)line[dimension - 1]))
+                    clases.Add((int)line[dimension - 1]);
             }
             return clases.ToArray();
         }
 
-        public double[] getClasesProbabilities(double[][] input)
+        /*
+         * Calculates the probability of each class on the dataset
+         */ 
+        public static double[] getClasesProbabilities(double[][] input)
         {
             int total = input.Length;
             int dimension = input[0].Length;
-            double[] probabilities = new double[getClases().Length];
+            double[] probabilities = new double[getClases(input).Length];
             for (int i = 0; i < input.Length; i++)
             {
                 probabilities[(int)input[i][dimension - 1] - 1]++;
@@ -90,32 +106,32 @@ namespace OC1
             return probabilities.Select(p => p/total).ToArray();
         }
 
-        public double Gain(int atributte, double[][] input, int k)
+        public double Gain(int atributte)
         {
-            double gain = Entropy(input);
-            int total = input.Length;
+            double gain = Entropy(_data);
+            int total = _data.Length;
 
             double min = Double.MaxValue;
             double max = Double.MinValue;
-            foreach (double[] line in input)
+            foreach (double[] line in _data)
             {
                 if (line[atributte] > max)
                     max = line[atributte];
                 if (line[atributte] < min)
                     min = line[atributte];
             }
-            double delta = (max - min) / (k - 1);
+            double delta = (max - min) / (_k - 1);
 
-            List<double[]>[] divisionGroupsLine = new List<double[]>[k];
-            for (int i = 0; i < k; i++)
+            List<double[]>[] divisionGroupsLine = new List<double[]>[_k];
+            for (int i = 0; i < _k; i++)
                 divisionGroupsLine[i] = new List<double[]>();
 
-            for (int i = 0; i < input.Length; i++)
+            for (int i = 0; i < _data.Length; i++)
             {
-                for (int j = 0; j < k; j++)
+                for (int j = 0; j < _k; j++)
                 {
-                    if(input[i][atributte] >= (min + j*delta) && input[i][atributte] < (min + (j+1)*delta))
-                        divisionGroupsLine[j].Add(input[i]);
+                    if(_data[i][atributte] >= (min + j*delta) && _data[i][atributte] < (min + (j+1)*delta))
+                        divisionGroupsLine[j].Add(_data[i]);
                 }
             }
 
@@ -125,6 +141,25 @@ namespace OC1
             }
 
             return gain;
+        }
+
+        public int GetHigherGain()
+        {
+            int atributte = 0;
+            double gain = -1;
+            for (int i = 0; i < _data[0].Length - 1; i++)
+            {
+                if(_activeAtributtes[i])
+                {
+                    double localGain = Gain(i);
+                    if (localGain > gain)
+                    {
+                        gain = Gain(i);
+                        atributte = i;
+                    }
+                }
+            }
+            return atributte;
         }
     }
 }

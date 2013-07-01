@@ -26,8 +26,12 @@ namespace OC1
 
             Console.WriteLine(axis.Gain(0, data.Data, 3));
             Console.WriteLine(axis.Gain(1, data.Data, 3));
-            Console.WriteLine(axis.Gain(2, data.Data, 2));
-            Console.WriteLine(axis.Gain(3, data.Data, 2));
+            Console.WriteLine(axis.Gain(2, data.Data, 3));
+            Console.WriteLine(axis.Gain(3, data.Data, 3));
+            Console.Write("\n");
+
+            Console.Write("\n");
+            Console.WriteLine(axis.GetHigherGain(data.Data, 3));
 
             Console.Read();
         }
