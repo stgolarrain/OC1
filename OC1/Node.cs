@@ -12,6 +12,7 @@ namespace OC1
         public double[] weights { get; set; }
         public double baias { get; set; }
         public double classType {get; set;}
+        public int leaf { get; set; }
 
         private bool[] _activeAtributtes;
         private Node _parent, _left, _right;
@@ -27,6 +28,15 @@ namespace OC1
             _activeAtributtes = new bool[weights.Length];
             classType = -1;
             _Pmove = Pstag;
+        }
+
+        public void SetNode(Node input)
+        {
+            for (int i = 0; i < weights.Length; i++)
+            {
+                weights[i] = input.weights[i];
+            }
+            baias = input.baias;
         }
 
         public bool[] ActiveAtributtes { get { return _activeAtributtes; } set { _activeAtributtes = value; } }
@@ -47,6 +57,7 @@ namespace OC1
                 clone.weights[i] = this.weights[i];
                 clone.ActiveAtributtes[i] = this.ActiveAtributtes[i];
             }
+            clone.classType = -1;
 
             return clone;
         }
@@ -60,7 +71,7 @@ namespace OC1
             for (int i = 0; i < input.Length; i++)
                 evaluation += input[i] * weights[i];
 
-            return Math.Sign(evaluation);
+            return evaluation;
         }
 
         public void ResetPmove()
@@ -124,6 +135,16 @@ namespace OC1
             baias = 0;
             for (int i = 0; i < point.Length; i++)
                 baias -= weights[i] * point[i];
+        }
+
+        public void RemoveRight()
+        {
+            _right = null;
+        }
+
+        public void RemoveLeft()
+        {
+            _left = null;
         }
     }
 }

@@ -14,8 +14,12 @@ namespace OC1
 
             Train trainVal = new Train(data.Data, 2);
             trainVal.Algorithm();
+            DesicionTree tree = trainVal.tree;
+            tree.Prunning(5);
 
-            Console.WriteLine("Finish");
+            for(int i = 0; i < data.Data.Length; i++)
+                Console.WriteLine(tree.Evaluate(data.Data[i]));
+
             Console.Read();
         }
     }

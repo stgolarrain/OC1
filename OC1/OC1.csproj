@@ -41,11 +41,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AxisParallelSplit.cs" />
     <Compile Include="DataParse.cs" />
     <Compile Include="DesicionTree.cs" />
     <Compile Include="Node.cs" />
-    <Compile Include="OC1Algorithm.cs" />
     <Compile Include="PairValue.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

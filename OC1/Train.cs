@@ -35,11 +35,17 @@ namespace OC1
             */
             node.classType = sameClass(dataInput);
             if (node.classType != -1)
+            {
+                node.leaf = dataInput.Length;
                 return;
+            }
 
             node.classType = sameAtributtes(dataInput);
             if (node.classType != -1)
+            {
+                node.leaf = dataInput.Length;
                 return;
+            }
 
             /*
              * Choose best axis-parallel split node for dataInput.
@@ -62,7 +68,7 @@ namespace OC1
                     pertube(d, auxNode, dataInput);
                     if (gain(dataInput, auxNode) > initialGain)
                     {
-                        node = (Node)auxNode.Clone();
+                        node.SetNode(auxNode);
                         break;
                     }
                 }
@@ -76,12 +82,12 @@ namespace OC1
                     pertube(direction, auxNode, dataInput);
                     if (gain(dataInput, auxNode) > initialGain)
                     {
-                        node = (Node)auxNode.Clone();
+                        node.SetNode(auxNode);
                         goto step1;
                     }
                 }
                 if (gain(dataInput, auxNode) > gain(dataInput, node))
-                    node = (Node)auxNode.Clone();
+                    node.SetNode(auxNode);
             }
 
             /*
@@ -91,7 +97,7 @@ namespace OC1
             Node right = new Node(new double[dataInput[0].Length], 0);
 
             node.SetLeft(left);
-            node.SetRight(left);
+            node.SetRight(right);
             List<double[]>[] data = divideData(dataInput, node);
             Algorithm(data[0].ToArray(), node.GetLeft());
             Algorithm(data[1].ToArray(), node.GetRight());
@@ -127,7 +133,7 @@ namespace OC1
                 return -1;
 
             int dimension = dataInput[0].Length;
-            double classValue = (int)dataInput[0][dimension - 1];
+            double classValue = dataInput[0][dimension - 1];
             foreach (double[] line in dataInput)
             {
                 if (line[dimension - 1] != classValue)
@@ -158,7 +164,7 @@ namespace OC1
 
             foreach (double[] line in dataInput)
             {
-                for (int a = 0; a < dimension; a++)
+                for (int a = 0; a < dimension - 1; a++)
                 {
                     classCount[(int)line[dimension - 1]]++;
                     if (values[a] != line[a])
@@ -166,12 +172,15 @@ namespace OC1
                 }
             }
 
-            int maxScore = 0;
-            int maxClass = 0;
+            double maxScore = 0;
+            double maxClass = 0;
             for (int i = 0; i < nclass; i++)
             {
                 if (classCount[i] > maxScore)
+                {
+                    maxScore = classCount[i];
                     maxClass = i;
+                }
             }
             return maxClass;
         }
@@ -261,7 +270,7 @@ namespace OC1
 
             for (int i = 0; i < input.Length; i++)
             {
-                if (node.Evaluate(input[i]) < 0)
+                if (node.Evaluate(input[i]) < 0) //Curioso caso.
                     data[0].Add(input[i]);
                 else
                     data[1].Add(input[i]);
