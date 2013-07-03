@@ -10,12 +10,12 @@ namespace OC1
     {
         static void Main(string[] args)
         {
-            DataParse data = new DataParse("dataset/glass_mm.txt");
-            Node.setSplitConstant(2);
-            Node.SetPmode(0.5);
-            OC1Algorithm oc1 = new OC1Algorithm(data.Data, 2);
-            oc1.ConstructTree();
+            DataParse data = new DataParse("dataset/heart_mm.txt");
 
+            Train trainVal = new Train(data.Data, 2);
+            trainVal.Algorithm();
+
+            Console.WriteLine("Finish");
             Console.Read();
         }
     }

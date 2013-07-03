@@ -15,7 +15,7 @@ namespace OC1
             _root = root;
         }
 
-        public Node getRoot()
+        public Node GetRoot()
         {
             return _root;
         }
