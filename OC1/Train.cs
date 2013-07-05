@@ -112,8 +112,30 @@ namespace OC1
             double[] U = new double[dataInput.Length];
             for (int i = 0; i < dataInput.Length; i++)
                 U[i] = Math.Min((node.weights[m] * dataInput[i][m] - node.Evaluate(dataInput[i])) / dataInput[i][m], 0);
+            Array.Sort(U);
 
-            auxNode.weights[m] = U.Max();
+            int bestA = 0;
+            int dif = Int16.MaxValue;
+            for (int i = 0; i < U.Length; i++)
+            {
+                int positive = 0;
+                int negative = 0;
+                for (int j = 0; j < U.Length; j++)
+                {
+                    if (j <= i && U[j] <= 0)
+                        negative++;
+                    else if (j > i && U[j] > 0)
+                        positive++;
+                }
+                if (Math.Abs(positive - negative) < dif)
+                {
+                    dif = Math.Abs(positive - negative);
+                    bestA = i;
+                }
+                
+            }
+
+            auxNode.weights[m] = U[bestA];
             if (gain(dataInput, auxNode) > gain(dataInput, node))
             {
                 node.weights[m] = U.Max();

@@ -43,6 +43,59 @@ namespace OC1
             return -1;
         }
 
+        public double LeafAvg()
+        {
+            return CountLeafLastNodes(_root) / CountLastNodes();
+        }
+
+        public int CountLeafLastNodes(Node node)
+        {
+            int result = 0;
+            if (node.GetLeft() != null)
+                result += CountLeafLastNodes(node.GetLeft());
+            if (node.GetRight() != null)
+                result += CountLeafLastNodes(node.GetRight());
+            if (node.GetLeft() == null && node.GetRight() == null)
+                return node.leaf;
+            return result;
+        }
+
+        public int CountLastNodes()
+        {
+            int result = 0;
+            result += CountLastNodes(_root);
+            return result;
+        }
+
+        public int CountLastNodes(Node node)
+        {
+            int result = 0;
+            if (node.GetLeft() != null)
+                result += CountLastNodes(node.GetLeft());
+            if (node.GetRight() != null)
+                result += CountLastNodes(node.GetRight());
+            if (node.GetLeft() == null && node.GetRight() == null)
+                return 1;
+            return result;
+        }
+
+        public int CountNodes()
+        {
+            int result = 1;
+            result += CountNodes(_root);
+            return result;
+        }
+
+        public int CountNodes(Node node)
+        {
+            int result = 1;
+            if (node.GetLeft() != null)
+                result += CountNodes(node.GetLeft());
+            if (node.GetRight() != null)
+                result += CountNodes(node.GetRight());
+            return result;
+        }
+
         public void Prunning(int n)
         {
             Node node = _root;
